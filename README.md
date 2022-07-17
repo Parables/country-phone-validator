@@ -1,71 +1,123 @@
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/support-ukraine.svg?t=1" />](https://supportukrainenow.org)
+# A highly configurable country specific phone number validator
 
-# :package_description
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/parables/country-phone-validator.svg?style=flat-square)](https://packagist.org/packages/parables/country-phone-validator)
+[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/parables/country-phone-validator/run-tests?label=tests)](https://github.com/parables/country-phone-validator/actions?query=workflow%3Arun-tests+branch%3Amain)
+[![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/parables/country-phone-validator/Check%20&%20fix%20styling?label=code%20style)](https://github.com/parables/country-phone-validator/actions?query=workflow%3A"Check+%26+fix+styling"+branch%3Amain)
+[![Total Downloads](https://img.shields.io/packagist/dt/parables/country-phone-validator.svg?style=flat-square)](https://packagist.org/packages/parables/country-phone-validator)
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-[![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/:vendor_slug/:package_slug/run-tests?label=tests)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3Arun-tests+branch%3Amain)
-[![GitHub Code Style Action Status](https://img.shields.io/github/workflow/status/:vendor_slug/:package_slug/Check%20&%20fix%20styling?label=code%20style)](https://github.com/:vendor_slug/:package_slug/actions?query=workflow%3A"Check+%26+fix+styling"+branch%3Amain)
-[![Total Downloads](https://img.shields.io/packagist/dt/:vendor_slug/:package_slug.svg?style=flat-square)](https://packagist.org/packages/:vendor_slug/:package_slug)
-<!--delete-->
----
-This repo can be used to scaffold a Laravel package. Follow these steps to get started:
+Validate phone numbers for a specific a country. Simply pass in the supported cellular networks extensions and the package will ensure that all phone numbers are valid for a given country.
 
-1. Press the "Use this template" button at the top of this repo to create a new repo with the contents of this skeleton.
-2. Run "php ./configure.php" to run a script that will replace all placeholders throughout all the files.
-3. Have fun creating your package.
-4. If you need help creating a package, consider picking up our <a href="https://laravelpackage.training">Laravel Package Training</a> video course.
----
-<!--/delete-->
-This is where your description should go. Limit it to a paragraph or two. Consider adding a small example.
+<!-- This package also includes a middleware you can add to your `web` and `api` routes to automatically validate and format requests containing phone numbers. -->
 
-## Support us
+Find and add more countries and extensions [here]()
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/:package_name.jpg?t=1" width="419px" />](https://spatie.be/github-ad-click/:package_name)
-
-We invest a lot of resources into creating [best in class open source packages](https://spatie.be/open-source). You can support us by [buying one of our paid products](https://spatie.be/open-source/support-us).
-
-We highly appreciate you sending us a postcard from your hometown, mentioning which of our package(s) you are using. You'll find our address on [our contact page](https://spatie.be/about-us). We publish all received postcards on [our virtual postcard wall](https://spatie.be/open-source/postcards).
+```php
+(new CountryPhoneValidator())
+    ->validate('233241234567')
+    ->forCountry('Ghana');
+```
 
 ## Installation
 
 You can install the package via composer:
 
 ```bash
-composer require :vendor_slug/:package_slug
-```
-
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag=":package_slug-migrations"
-php artisan migrate
+composer require parables/country-phone-validator
 ```
 
 You can publish the config file with:
 
 ```bash
-php artisan vendor:publish --tag=":package_slug-config"
+php artisan vendor:publish --tag="country-phone-validator-config"
 ```
 
 This is the contents of the published config file:
 
 ```php
 return [
+    /*
+    |--------------------------------------------------------------------------
+    | Supported Countries
+    |--------------------------------------------------------------------------
+    |
+    | For each supported country, pass in the country code as the key, and  an
+    | array as the value containing the names/abbreviations(case insensitive)
+    | for the `country` and a list of `networks_extensions` that operates
+    | in that country.
+    |
+    */
+
+    'countries' => [
+        '233' => [
+            'country' => 'Ghana|gh',
+            'networks_extension' => [ // be explicit if 2 digit network extensions should be supported
+                '020|20',  // vodafone
+                '023|23',  // glo
+                '024|24',  // mtn
+                '026|26',  // airtel
+                '027|27',  //tigo
+                '028|28',  //
+                '050|50',  // vodafone
+                '054|54',  // mtn
+                '055|55',  // mtn
+                '056|56',  //airtel-tigo
+                '057|57',  // tigo
+                '059|59',  // mtn
+            ],
+        ]
+    ],
+
+
 ];
-```
-
-Optionally, you can publish the views using
-
-```bash
-php artisan vendor:publish --tag=":package_slug-views"
 ```
 
 ## Usage
 
 ```php
-$variable = new VendorName\Skeleton();
-echo $variable->echoPhrase('Hello, VendorName!');
+// instance
+(new CountryPhoneValidator())
+    ->validate('233241234567')
+    ->forCountry('Ghana');
+    
+// facade
+CountryPhoneValidator::validate('233241234567')
+    ->forCountry('Ghana');
+    
+// helper function
+countryPhoneValidator()
+    ->validate('233241234567')
+    ->forCountry('Ghana');
+```
+
+## Using as middleware
+
+<!-- This packages provides 2 middlewares: `ValidateApiPhoneNumber` and `ValidatePhoneNumber` for your `web` and `api` routes respectively -->
+TODO: A sample usage of this pacakage as a middleware for web and api routes
+
+## Extend countries with `.env`
+
+We recommend that you add your supported countries to the `country-phone-validator` config file.
+
+However, you can also add more extensions for a country by adding it to your `.env` file and it would be merged with those in the config file.
+
+To extend with the `.env` file:
+
+1. Wrap the value of the `COUNTRY_PHONE_VALIDATOR` env variable in quotes `""`.
+2. Each entry is separated by a semi-colon `;`.
+3. Every entry MUST start with the country code separated by a fat arrow `=>` followed by the names or abbreviations for the country.
+4. Each country name or abbreviation (case insensitive) is separated by a pipe `|`.
+5. Separate the country names with a fat arrow  `=>` and then append the network extensions.
+6. Each extension code is separated by a pipe `|`.
+
+Example:
+
+```env
+# .env
+
+COUNTRY_PHONE_VALIDATOR="
+233=>gh|Ghana=>024|24|020|20;
+234=>Nigeria|NG|NGA=>0803|0806|0703|0706|0813|0816|0810|0814|0903|0906";
 ```
 
 ## Testing
@@ -80,7 +132,7 @@ Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed re
 
 ## Contributing
 
-Please see [CONTRIBUTING](https://github.com/:author_username/.github/blob/main/CONTRIBUTING.md) for details.
+Please see [CONTRIBUTING](<https://github.com/Parables> Boltnoel/.github/blob/main/CONTRIBUTING.md) for details.
 
 ## Security Vulnerabilities
 
@@ -88,7 +140,7 @@ Please review [our security policy](../../security/policy) on how to report secu
 
 ## Credits
 
-- [:author_name](https://github.com/:author_username)
+- [parables](<https://github.com/Parables> Boltnoel)
 - [All Contributors](../../contributors)
 
 ## License
